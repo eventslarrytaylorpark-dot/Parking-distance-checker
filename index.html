@@ -59,4 +59,184 @@
   .field { display: flex; flex-direction: column; gap: 5px; }
   .preview-scroll { overflow-x: auto; max-height: 180px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--rs); }
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  thead th { position: sticky; top: 0; background: var(--surface2); padding: 7px 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text3); text-align: left; border
+  thead th { position: sticky; top: 0; background: var(--surface2); padding: 7px 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text3); text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface2); }
+  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 20px; white-space: nowrap; }
+  .b-close { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+  .b-moderate { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-bd); }
+  .b-far { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-bd); }
+  .maps-link { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--blue); text-decoration: none; font-weight: 500; }
+  .maps-link:hover { text-decoration: underline; }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .stat { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--rs); padding: 12px 14px; }
+  .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); margin-bottom: 4px; }
+  .stat-val { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -.5px; }
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .fbtn { padding: 4px 12px; font-size: 12px; font-weight: 500; border-radius: 20px; border: 1px solid var(--border-s); background: var(--surface); color: var(--text2); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .1s; }
+  .fbtn.active { background: var(--text); color: #fff; border-color: var(--text); }
+  .progress-wrap { margin: 1rem 0; }
+  .progress-label { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+  .progress-track { background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; border: 1px solid var(--border); }
+  .progress-fill { height: 100%; background: var(--text); border-radius: 4px; transition: width .4s; }
+  .alert { padding: 10px 14px; border-radius: var(--rs); font-size: 13px; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 8px; }
+  .alert-err { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-bd); }
+  .alert-info { background: var(--blue-bg); color: #1e40af; border: 1px solid #bfcff9; }
+  .hint { font-size: 12px; color: var(--text3); margin-top: 5px; line-height: 1.5; }
+  .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 8px; }
+  .file-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 13px; color: var(--text2); margin-bottom: 10px; }
+  .results-tbl-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r); }
+  footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 12px; color: var(--text3); text-align: center; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 600px) { .col-grid { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="logo-row">
+      <div class="logo">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      </div>
+      <h1>Parking Distance Checker</h1>
+    </div>
+    <p class="tagline">Accurate walking distance &amp; time from parking to your event venue — powered by AI routing.</p>
+  </header>
+  <div class="card">
+    <div class="card-title">Event Venue</div>
+    <label>Destination name or address</label>
+    <input type="text" id="dest" placeholder="e.g. Gramercy Theatre, New York" />
+  </div>
+  <div class="card">
+    <div class="card-title">Parking Locations</div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('manual',this)">Paste addresses</button>
+      <button class="tab" onclick="switchTab('file',this)">Upload file</button>
+    </div>
+    <div class="tab-pane active" id="pane-manual">
+      <label>One address per line</label>
+      <textarea id="manualInput" placeholder="330 3rd Ave, New York, NY&#10;200 E 24th St, New York, NY&#10;32 Gramercy Park S, New York, NY"></textarea>
+      <p class="hint">Paste directly from SpotHero, ParkWhiz, Way.com, or a spreadsheet column. Up to 30 addresses.</p>
+    </div>
+    <div class="tab-pane" id="pane-file">
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.tsv,.txt" onchange="handleFile(event)">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        <div class="dzt">Drop file here or click to browse</div>
+        <div class="dzs">CSV, Excel (.xlsx / .xls), TSV — any column layout</div>
+      </div>
+      <div id="filePreview" style="display:none">
+        <div class="file-pill">
+          <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span id="fileName"></span><span id="fileRowCount" style="color:var(--text3)"></span>
+        </div>
+        <div class="alert alert-info" style="margin-bottom:1rem">
+          <svg style="width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Map which column holds the parking addresses, then optionally map name and platform columns.
+        </div>
+        <div class="col-grid">
+          <div class="field"><label>Address column <span style="color:var(--red)">*</span></label><select id="addrCol" onchange="refreshPreview()"></select></div>
+          <div class="field"><label>Name column <span style="color:var(--text3)">(optional)</span></label><select id="nameCol" onchange="refreshPreview()"></select></div>
+          <div class="field"><label>Platform column <span style="color:var(--text3)">(optional)</span></label><select id="platCol" onchange="refreshPreview()"></select></div>
+          <div class="field"><label>First row</label>
+            <select id="skipHdr" onchange="refreshPreview()">
+              <option value="1">Skip — it's a header row</option>
+              <option value="0">Include — data starts at row 1</option>
+            </select>
+          </div>
+        </div>
+        <div class="section-label">Preview <span id="previewCount" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:12px"></span></div>
+        <div class="preview-scroll">
+          <table><thead id="pvHead"></thead><tbody id="pvBody"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="errMsg" class="alert alert-err" style="display:none"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="runBtn" onclick="run()">
+      <svg id="runIcon" style="width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Check all distances
+    </button>
+    <button class="btn btn-secondary" id="csvBtn" onclick="exportCSV()" style="display:none">
+      <svg style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export CSV
+    </button>
+    <button class="btn btn-secondary" onclick="resetAll()">
+      <svg style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.1"/></svg>
+      Reset
+    </button>
+  </div>
+  <div id="progressWrap" style="display:none" class="progress-wrap">
+    <div class="progress-label" id="progressLabel">Processing…</div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+  <div id="resultsSection" style="display:none">
+    <div class="summary-grid">
+      <div class="stat"><div class="stat-label">Total checked</div><div class="stat-val" id="sTotal">0</div></div>
+      <div class="stat"><div class="stat-label">Closest</div><div class="stat-val" id="sMin">—</div></div>
+      <div class="stat"><div class="stat-label">Avg walk</div><div class="stat-val" id="sAvg">—</div></div>
+      <div class="stat"><div class="stat-label">Within 5 min</div><div class="stat-val" id="sClose">0</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div class="section-label" style="margin:0">Results — sorted by distance</div>
+      <div class="filter-row" style="margin:0" id="filterRow">
+        <button class="fbtn active" onclick="filterTbl('all',this)">All</button>
+        <button class="fbtn" onclick="filterTbl('close',this)">Close</button>
+        <button class="fbtn" onclick="filterTbl('moderate',this)">Moderate</button>
+        <button class="fbtn" onclick="filterTbl('far',this)">Far</button>
+      </div>
+    </div>
+    <div class="results-tbl-wrap">
+      <table style="table-layout:fixed;min-width:580px">
+        <thead>
+          <tr>
+            <th style="width:30px">#</th>
+            <th id="hName" style="width:17%">Name</th>
+            <th style="width:auto">Parking address</th>
+            <th id="hPlat" style="width:11%">Platform</th>
+            <th style="width:82px">Distance</th>
+            <th style="width:78px">Walk time</th>
+            <th style="width:78px">Status</th>
+            <th style="width:60px">Maps</th>
+          </tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <footer>Distances are AI-estimated using realistic routing data. Always verify critical entries in Google Maps.</footer>
+</div>
+<script>
+let activeTab='manual',parsedRows=[],headers=[],allResults=[],destResolved='';
+function switchTab(name,el){activeTab=name;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));document.getElementById('pane-'+name).classList.add('active');}
+const dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])processFile(e.dataTransfer.files[0]);});
+function handleFile(e){if(e.target.files[0])processFile(e.target.files[0]);}
+function processFile(file){hideErr();const name=file.name.toLowerCase();const reader=new FileReader();if(name.endsWith('.xlsx')||name.endsWith('.xls')){reader.onload=ev=>{try{const wb=XLSX.read(ev.target.result,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];loadData(XLSX.utils.sheet_to_json(ws,{header:1,defval:''}),file.name);}catch(e){showErr('Could not read Excel file.');}};reader.readAsArrayBuffer(file);}else{reader.onload=ev=>{const t=ev.target.result;const sep=t.includes('\t')?'\t':',';loadData(t.trim().split('\n').map(r=>r.split(sep).map(c=>c.replace(/^"|"$/g,'').trim())),file.name);};reader.readAsText(file);}}
+function loadData(rows,name){if(!rows||rows.length<2){showErr('File appears empty.');return;}headers=rows[0].map((h,i)=>String(h)||'Column '+(i+1));parsedRows=rows;document.getElementById('fileName').textContent=name;document.getElementById('fileRowCount').textContent=' · '+(rows.length-1)+' rows';['addrCol','nameCol','platCol'].forEach((id,i)=>{const sel=document.getElementById(id);sel.innerHTML=i>0?'<option value="">— none —</option>':'';headers.forEach((h,j)=>{const o=document.createElement('option');o.value=j;o.textContent=h;sel.appendChild(o);});if(i===0){const g=headers.findIndex(h=>/addr|address|location|parking|street/i.test(h));sel.value=g>=0?g:0;}if(i===1){const g=headers.findIndex(h=>/name|lot|facility|label/i.test(h));sel.value=g>=0?g:'';}if(i===2){const g=headers.findIndex(h=>/platform|source|site|provider/i.test(h));sel.value=g>=0?g:'';}});refreshPreview();document.getElementById('filePreview').style.display='block';}
+function getDataRows(){return parsedRows.slice(parseInt(document.getElementById('skipHdr').value));}
+function refreshPreview(){const ai=parseInt(document.getElementById('addrCol').value);const nv=document.getElementById('nameCol').value;const pv=document.getElementById('platCol').value;const ni=nv!==''?parseInt(nv):null;const pi=pv!==''?parseInt(pv):null;const rows=getDataRows().filter(r=>r[ai]&&String(r[ai]).trim());document.getElementById('previewCount').textContent='('+rows.length+' rows found)';const cols=[];if(ni!==null)cols.push({i:ni,l:headers[ni]||'Name'});cols.push({i:ai,l:headers[ai]||'Address',hi:true});if(pi!==null)cols.push({i:pi,l:headers[pi]||'Platform'});document.getElementById('pvHead').innerHTML='<tr>'+cols.map(c=>`<th style="${c.hi?'color:#2563eb':''}">${c.l}</th>`).join('')+'</tr>';document.getElementById('pvBody').innerHTML=rows.slice(0,6).map(r=>'<tr>'+cols.map(c=>`<td>${r[c.i]||''}</td>`).join('')+'</tr>').join('')+(rows.length>6?`<tr><td colspan="${cols.length}" style="color:var(--text3);font-style:italic">… and ${rows.length-6} more rows</td></tr>`:'');}
+function showErr(m){const e=document.getElementById('errMsg');e.innerHTML=`<svg style="width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>${m}`;e.style.display='flex';}
+function hideErr(){document.getElementById('errMsg').style.display='none';}
+function fDist(m){const mi=m/1609.34;return mi<0.1?Math.round(m*3.281)+' ft':mi.toFixed(2)+' mi';}
+function fTime(s){const m=Math.round(s/60);return m<60?m+' min':Math.floor(m/60)+'h '+(m%60)+'m';}
+function bCls(m){return m<=400?'b-close':m<=800?'b-moderate':'b-far';}
+function bLbl(m){return m<=400?'Close':m<=800?'Moderate':'Far';}
+function mUrl(from,to){return`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&travelmode=walking`;}
+function filterTbl(type,el){document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.querySelectorAll('#resultBody tr').forEach(r=>{r.style.display=(type==='all'||r.dataset.status===type)?'':'none';});}
+function setProgress(pct,label){document.getElementById('progressLabel').textContent=label;document.getElementById('progressFill').style.width=pct+'%';}
+async function run(){hideErr();const dest=document.getElementById('dest').value.trim();if(!dest){showErr('Please enter an event venue.');return;}let items=[];if(activeTab==='manual'){const raw=document.getElementById('manualInput').value.trim();if(!raw){showErr('Please paste at least one parking address.');return;}items=raw.split('\n').map(l=>l.trim()).filter(Boolean).slice(0,30).map(a=>({address:a,name:'',platform:''}));}else{const ai=parseInt(document.getElementById('addrCol').value);const nv=document.getElementById('nameCol').value;const pv=document.getElementById('platCol').value;const ni=nv!==''?parseInt(nv):null;const pi=pv!==''?parseInt(pv):null;const rows=getDataRows().filter(r=>r[ai]&&String(r[ai]).trim()).slice(0,30);if(!rows.length){showErr('No address rows found.');return;}items=rows.map(r=>({address:String(r[ai]).trim(),name:ni!==null?String(r[ni]||'').trim():'',platform:pi!==null?String(r[pi]||'').trim():''}));}
+const btn=document.getElementById('runBtn');btn.disabled=true;document.getElementById('runIcon').style.animation='spin 1s linear infinite';document.getElementById('progressWrap').style.display='block';document.getElementById('resultsSection').style.display='none';document.getElementById('csvBtn').style.display='none';allResults=[];destResolved='';
+const BATCH=10;for(let i=0;i<items.length;i+=BATCH){const batch=items.slice(i,i+BATCH);setProgress(Math.round(i/items.length*90),`Processing ${i} / ${items.length}…`);try{const res=await fetch('/api/distances',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({destination:dest,addresses:batch.map(b=>b.address)})});if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.error||'Server error '+res.status);}const data=await res.json();if(data.destination_resolved)destResolved=data.destination_resolved;(data.results||[]).forEach((r,j)=>{allResults.push({...r,name:batch[j].name,platform:batch[j].platform});});}catch(e){batch.forEach(p=>allResults.push({parking_input:p.address,parking_resolved:p.address,distance_meters:null,walk_time_seconds:null,name:p.name,platform:p.platform,error:e.message}));}}
+setProgress(100,'Done!');setTimeout(()=>document.getElementById('progressWrap').style.display='none',600);allResults.sort((a,b)=>(a.distance_meters||99999)-(b.distance_meters||99999));renderSummary();renderResults();btn.disabled=false;document.getElementById('runIcon').style.animation='';}
+function renderSummary(){const valid=allResults.filter(r=>r.distance_meters);const close=valid.filter(r=>r.walk_time_seconds<=300);const minR=valid.length?valid.reduce((a,b)=>a.distance_meters<b.distance_meters?a:b):null;const avgS=valid.length?Math.round(valid.reduce((s,r)=>s+r.walk_time_seconds,0)/valid.length):0;document.getElementById('sTotal').textContent=allResults.length;document.getElementById('sMin').textContent=minR?fDist(minR.distance_meters):'—';document.getElementById('sAvg').textContent=valid.length?fTime(avgS):'—';document.getElementById('sClose').textContent=close.length;}
+function renderResults(){const dest=destResolved||document.getElementById('dest').value.trim();const hasName=allResults.some(r=>r.name);const hasPlat=allResults.some(r=>r.platform);document.getElementById('hName').style.display=hasName?'':'none';document.getElementById('hPlat').style.display=hasPlat?'':'none';document.getElementById('resultBody').innerHTML=allResults.map((r,i)=>{if(!r.distance_meters){return`<tr data-status="error"><td style="color:var(--text3)">${i+1}</td>${hasName?`<td>${r.name||''}</td>`:''}<td style="font-size:12px">${r.parking_input}</td>${hasPlat?`<td>${r.platform||''}</td>`:''}<td colspan="3" style="color:var(--text3);font-size:12px;font-style:italic">${r.error||'Could not resolve'}</td><td></td></tr>`;}const bl=bLbl(r.distance_meters);const url=mUrl(r.parking_resolved||r.parking_input,dest);return`<tr data-status="${bl.toLowerCase()}"><td style="color:var(--text3);font-size:12px">${i+1}</td>${hasName?`<td style="font-weight:500;font-size:13px">${r.name||'—'}</td>`:''}<td><div style="font-size:12px;font-weight:500">${r.parking_input}</div>${r.parking_resolved!==r.parking_input?`<div style="font-size:11px;color:var(--text3);margin-top:1px">${r.parking_resolved}</div>`:''}</td>${hasPlat?`<td style="font-size:12px;color:var(--text2)">${r.platform||'—'}</td>`:''}<td style="font-weight:600;font-size:13px">${fDist(r.distance_meters)}</td><td style="font-size:13px">${fTime(r.walk_time_seconds)}</td><td><span class="badge ${bCls(r.distance_meters)}">${bl}</span></td><td><a class="maps-link" href="${url}" target="_blank"><svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a></td></tr>`;}).join('');document.getElementById('resultsSection').style.display='block';document.getElementById('csvBtn').style.display='inline-flex';}
+function exportCSV(){const dest=destResolved||document.getElementById('dest').value.trim();const hasName=allResults.some(r=>r.name);const hasPlat=allResults.some(r=>r.platform);const hdr=['#'];if(hasName)hdr.push('Name');hdr.push('Parking input','Resolved address');if(hasPlat)hdr.push('Platform');hdr.push('Distance','Walk time (min)','Status','Google Maps link');const rows=allResults.map((r,i)=>{const row=[i+1];if(hasName)row.push(r.name||'');row.push(r.parking_input,r.parking_resolved||'');if(hasPlat)row.push(r.platform||'');row.push(r.distance_meters?fDist(r.distance_meters):'',r.walk_time_seconds?Math.round(r.walk_time_seconds/60):'',r.distance_meters?bLbl(r.distance_meters):'Error',r.distance_meters?mUrl(r.parking_resolved||r.parking_input,dest):'');return row;});const csv=[hdr,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='parking_distances.csv';a.click();}
+function resetAll(){parsedRows=[];headers=[];allResults=[];destResolved='';document.getElementById('dest').value='';document.getElementById('manualInput').value='';document.getElementById('fileInput').value='';document.getElementById('filePreview').style.display='none';document.getElementById('progressWrap').style.display='none';document.getElementById('resultsSection').style.display='none';document.getElementById('csvBtn').style.display='none';hideErr();}
+</script>
+</body>
+</html>
